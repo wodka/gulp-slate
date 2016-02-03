@@ -1,0 +1,34 @@
+{
+  "name": "gulp-slate",
+  "version": "0.0.1",
+  "description": "Slate API Documentation built to build with gulp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "napa tripit/slate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wodka/gulp-slate.git"
+  },
+  "keywords": [
+    "slate",
+    "api",
+    "documentation",
+    "gulp",
+    "nodejs",
+    "pretty"
+  ],
+  "author": "Michael Schramm <michael.schramm@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wodka/gulp-slate/issues"
+  },
+  "homepage": "https://github.com/wodka/gulp-slate#readme",
+  "dependencies": {
+    "handlebars": "^4.0.5",
+    "highlight.js": "^9.1.0",
+    "marked": "^0.3.5",
+    "napa": "^2.3.0"
+  }
+}
