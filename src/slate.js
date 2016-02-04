@@ -41,6 +41,10 @@ Handlebars.registerHelper('html', function(content){
     return new Handlebars.SafeString(content);
 });
 
+Handlebars.registerHelper('json', function(context) {
+    return JSON.stringify(context);
+});
+
 /**
  * return a parsed template
  *
@@ -98,8 +102,6 @@ module.exports = function (markup, template, includesLoader) {
         // can be either a string or a promise
         markdown.push(includesLoader(include));
     });
-
-    data['languages'] = JSON.stringify(data['language_tabs']);
 
     return new Promise(function (resolve) {
         Promise.all(markdown)

@@ -10,6 +10,8 @@ var uglify = require('gulp-uglify');
 var through = require('through2');
 var slate = require('./src/slate');
 var Promise = require('promise');
+var gutil = require('gulp-util');
+var rename = require("gulp-rename");
 
 /**
  * set the current file in given path to name
@@ -49,40 +51,72 @@ function fixFilename (name, override) {
  *
  * @returns Promise
  */
-function buildAssets (opts) {
+function buildAssets (opts, context) {
     return new Promise(function (resolve) {
         es.concat(
             gulp
-                .src('src/app.scss')
+                .src('src/app.scss', {base: '.'})
                 .pipe(sass())
-                .pipe(gulp.dest(opts.target + 'build/')),
+                .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
+                .pipe(gutil.buffer(function(err, files) {
+                    _.forEach(files, function (file) {
+                        gutil.log("push asset", file.path);
+                        context.push(file);
+                    });
+                })),
             gulp
-                .src('node_modules/slate/source/javascripts/app/*.js')
+                .src('node_modules/slate/source/javascripts/app/*.js', {base: '.'})
                 .pipe(concat("app.js"))
                 .pipe(uglify())
-                .pipe(gulp.dest(opts.target + 'build/')),
+                .pipe(rename({dirname: 'build', basename: 'app', extname: '.js'}))
+                .pipe(gutil.buffer(function(err, files) {
+                    _.forEach(files, function (file) {
+                        gutil.log("push asset", file.path);
+                        context.push(file);
+                    });
+                })),
             gulp
                 .src(
                     [
                         'node_modules/slate/source/javascripts/lib/_jquery.js',
                         'node_modules/slate/source/javascripts/lib/_jquery_ui.js',
                         'node_modules/slate/source/javascripts/lib/*.js'
-                    ]
+                    ], {base: '.'}
                 )
                 .pipe(concat("libs.js"))
                 .pipe(uglify())
-                .pipe(gulp.dest(opts.target + 'build/')),
+                .pipe(rename({dirname: 'build', basename: 'libs', extname: '.js'}))
+                .pipe(gutil.buffer(function(err, files) {
+                    _.forEach(files, function (file) {
+                        gutil.log("push asset", file.path);
+                        context.push(file);
+                    });
+                })),
             gulp
                 .src(
                     [
                         'node_modules/slate/source/fonts/*',
                         'node_modules/slate/source/images/navbar.png'
-                    ]
+                    ], {base: '.'}
                 )
-                .pipe(gulp.dest(opts.target + 'build/')),
+                .pipe(rename(function (path) {
+                    path.dirname = 'build';
+                }))
+                .pipe(gutil.buffer(function(err, files) {
+                    _.forEach(files, function (file) {
+                        gutil.log("push asset", file.path);
+                        context.push(file);
+                    });
+                })),
             gulp
-                .src(opts.logo)
-                .pipe(gulp.dest(opts.target + 'images/'))
+                .src(opts.logo, {base: '.'})
+                .pipe(rename({dirname: 'images', basename: 'logo', extname: '.png'}))
+                .pipe(gutil.buffer(function(err, files) {
+                    _.forEach(files, function (file) {
+                        gutil.log("push asset", file.path);
+                        context.push(file);
+                    });
+                }))
         ).on(
             'end',
             function () {
@@ -94,15 +128,18 @@ function buildAssets (opts) {
 
 module.exports = function (opts) {
     opts = _.extend(opts, {
-        target: 'dist/',
         targetWrite: true,
         filename: false,
         template: 'src/layout.html',
         logo: 'node_modules/slate/source/images/logo.png',
         includeLoader: function (name, mainFile) {
             return new Promise(function (resolve) {
+                var includeFile = changeFile(mainFile, "includes/_"+name+".md");
+
+                gutil.log("include markup", includeFile);
+
                 fs.readFile(
-                    changeFile(mainFile, "includes/_"+name+".md"),
+                    includeFile,
                     'utf-8',
                     function (err, source) {
                         if (err) {
@@ -117,10 +154,6 @@ module.exports = function (opts) {
         }
     });
 
-    if (opts.targetWrite) {
-        buildAssets(opts);
-    }
-
     return through.obj(
         function (file, enc, cb) {
              // file coming in :D
@@ -128,7 +161,7 @@ module.exports = function (opts) {
 
             var files = [];
             if (opts.targetWrite) {
-                files.push(buildAssets(opts));
+                files.push(buildAssets(opts, context));
             }
 
             files.push(new Promise(function (resolve) {
@@ -142,6 +175,8 @@ module.exports = function (opts) {
                         }
                     ).then(
                         function(result) {
+                            gutil.log("push main file");
+
                             file.contents = new Buffer(result);
                             file.path = fixFilename(file.path, opts.filename);
 

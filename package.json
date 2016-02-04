@@ -1,6 +1,6 @@
 {
   "name": "gulp-slate",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Slate API Documentation built to build with gulp",
   "main": "index.js",
   "scripts": {
@@ -29,8 +29,10 @@
     "event-stream": "^3.3.2",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
+    "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.1.1",
     "gulp-uglify": "^1.5.1",
+    "gulp-util": "^3.0.7",
     "handlebars": "^4.0.5",
     "highlight.js": "^9.1.0",
     "lodash": "^4.2.1",
