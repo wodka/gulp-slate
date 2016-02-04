@@ -1,16 +1,15 @@
 # gulp-slate
 
-build a nice api documentation
-
-
-TODO add documentation
+node.js with port of tripit/slate to be included in gulp :)
 
 ## usage
 
+### Instalation
 ```
 npm install gulp-slate --save
 ```
 
+### Gulp Setup
 
 now you can setup a gulp task to handle the build
 ```
@@ -21,7 +20,7 @@ var slate = require('gulp-slate');
 gulp.task('slate', function () {
     return gulp.src(
         [
-            'docs/index.html.md'
+            'node_modules/gulp-slate/node_modules/slate/source/index.html.md'
         ]
     )
         .pipe(slate())
@@ -30,7 +29,7 @@ gulp.task('slate', function () {
 });
 ```
 
-### build it
+### First Build
 
 this is really simple since the task is already setup:
 
@@ -45,30 +44,13 @@ now go on and host the dist/ folder somewhere
 python -m SimpleHTTPServer 8000
 ```
 
-now open http://localhost:8000 in a browser of your choice
-
-## thanks to
-* https://github.com/jmanek/slate_node
-* https://github.com/tripit/slate
-
-## howto test it
-
-```
-npm install
-
-node test.js
-
-cd dist
-python -m SimpleHTTPServer 8000
-```
-
-will give you the same output as http://tripit.github.io/slate/
+now open http://localhost:8000 in a browser of your choice, result should look exactly like http://tripit.github.io/slate/
 
 ### constructor(options)
 #### options.assets
 add assets to current stream
 
-Type: `Boolean`<br><br>Default true
+Type: `Boolean`<br><br>Default `true`
 
 #### options.filename
 set the filename - warning: only use one input file! else only the last one will show up
@@ -90,3 +72,7 @@ where to load includes from, the function receives the name as well as the
 path to the main markdown file and should return a promise that resolves the file content
 
 Type: `Function`<br><br>Default `error` will be loaded from `includes/_error.md`
+
+## thanks to
+* https://github.com/jmanek/slate_node
+* https://github.com/tripit/slate
