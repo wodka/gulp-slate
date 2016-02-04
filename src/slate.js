@@ -26,7 +26,15 @@ marked.setOptions({
     smartLists: true,
     smartypants: false,
     highlight: function (code, lang) {
-        return highlight.highlight(lang, code).value;
+        var parts = lang.split('>', 2);
+
+        if (parts.length == 2) {
+            lang = parts[1];
+        }
+
+        var result = highlight.highlight(lang, code).value;
+
+        return result;
     }
 });
 
@@ -114,7 +122,10 @@ module.exports = function (markup, template, includesLoader) {
                                 reject(err);
                             }
 
-                            data['content'] = content.replace(/pre><code([^>]+)/g, 'pre$1><code');
+                            data['content'] = content
+                                .replace(/pre><code([^>]+)/g, 'pre$1><code')
+                                .replace(/class="highlight ([^&"]+)&([^"]+)"/g, 'class="highlight $1"')
+                            ;
 
                             resolve(Handlebars.compile(template)(data));
                         }

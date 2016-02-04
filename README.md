@@ -46,6 +46,10 @@ python -m SimpleHTTPServer 8000
 
 now open http://localhost:8000 in a browser of your choice, result should look exactly like http://tripit.github.io/slate/
 
+### Neat Features
+
+If you need different Language groups use an Alias: angular>javascript for javascript highlighting in the angular group
+
 ## automate development
 
 you can use browserSync

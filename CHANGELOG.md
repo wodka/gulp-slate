@@ -1,3 +1,7 @@
+## Version 1.0.3 (unreleased)
+
+- allow language aliases
+
 ## Version 1.0.2
 
 - new option to change highlight style
