@@ -62,6 +62,11 @@ Template to render - in general you should never need to touch this
 
 Type: `String`<br><br>Default `src/layout.html`
 
+#### options.scss
+If you need to override certain css parameters, do not forget to include the original app.scss if you change this
+
+Type: `String`<br><br>Default `src/app.scss`
+
 #### options.logo
 to have a custom logo added to the page
 

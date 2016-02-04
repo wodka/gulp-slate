@@ -60,7 +60,7 @@ function buildAssets (opts, callback) {
     return new Promise(function (resolve) {
         es.concat(
             gulp
-                .src(ROOT+'src/app.scss', {base: '.'})
+                .src(opts.scss, {base: '.'})
                 .pipe(sass())
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
                 .pipe(gutil.buffer(function(err, files) {
@@ -131,6 +131,7 @@ module.exports = function (opts) {
         assets: true,
         filename: false,
         template: ROOT+'src/layout.html',
+        scss: ROOT+'src/app.scss',
         logo: ROOT+'node_modules/slate/source/images/logo.png',
         includeLoader: function (name, mainFile) {
             return new Promise(function (resolve) {
