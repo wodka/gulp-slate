@@ -11,10 +11,12 @@
  under
  */
 
+var _ = require('lodash');
 var marked = require('marked');
 var fs = require('fs');
 var highlight = require('highlight.js');
 var Handlebars = require('handlebars');
+var Promise = require('promise');
 
 marked.setOptions({
     renderer: new marked.Renderer(),
@@ -41,27 +43,32 @@ Handlebars.registerHelper('html', function(content){
     return new Handlebars.SafeString(content);
 });
 
-fs.readFile('./source/index.md', 'utf8', function (err, content) {
-    if (err) {console.log(err)};
+/**
+ * return a parsed template
+ *
+ * @param markup
+ * @param template
+ */
+module.exports = function (markup, template, includesLoader) {
+    includesLoader = includesLoader || function () { return ''; };
 
     // // marked doens't recognize "shell"?
-    content = content.replace(/``` shell/gm, '``` bash');
-    content = content.split(/---/g);
+    markup = markup.replace(/```shell/gm, '```bash');
+    markup = markup.split(/(?:^|\n)---\n/g);
 
-    if (content.length === 1) {
+    if (markup.length === 1) {
         throw new Error('No markdown page settings found!');
     }
 
     var data = {};
-    var tokens = new marked.Lexer().lex(content[1]);
+    var tokens = new marked.Lexer().lex(markup[1]);
     var token;
     var listName;
 
     for (var idx = 0; idx < tokens.length; idx++) {
-
         token = tokens[idx];
 
-        if (token.type === 'list_item_start'){
+        if (token.type === 'list_item_start' && listName){
             token = tokens[idx+1].text;
             if (listName === 'language_tabs' && token === 'shell'){
                 token = 'bash';
@@ -84,17 +91,27 @@ fs.readFile('./source/index.md', 'utf8', function (err, content) {
 
             }
         }
-
     }
 
-    fs.readFile('./source/layouts/layout.html', 'utf8', function (err, source) {
-        if (err) {console.log(err)};
+    var markdown = [];
+    markdown.push(markup.slice(2).join(''));
 
-        var template = Handlebars.compile(source);
-        data['content'] = marked(content.slice(2).join(''));
-        fs.writeFile('./source/index.html', template(data), function(err){
-            if (err) {console.log(err);}
-        });
+    _.forEach(data['includes'], function (include) {
+        // can be either a string or a promise
+        markdown.push(includesLoader(include));
     });
 
-});
+    data['languages'] = JSON.stringify(data['language_tabs']);
+
+    return new Promise(function (resolve, reject) {
+        Promise.all(markdown)
+            .then(
+                function (res) {
+                    data['content'] = marked(res.join(''))
+                        .replace(/pre><code([^>]+)/g, 'pre$1><code');
+
+                    resolve(Handlebars.compile(template)(data))
+                }
+            );
+    });
+};
