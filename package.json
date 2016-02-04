@@ -1,6 +1,6 @@
 {
   "name": "gulp-slate",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Slate API Documentation built to build with gulp",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,8 @@
     "documentation",
     "gulp",
     "nodejs",
-    "pretty"
+    "pretty",
+    "gulpplugin"
   ],
   "author": "Michael Schramm <michael.schramm@gmail.com>",
   "license": "ISC",
@@ -27,7 +28,6 @@
   "homepage": "https://github.com/wodka/gulp-slate#readme",
   "dependencies": {
     "event-stream": "^3.3.2",
-    "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.1.1",
@@ -41,5 +41,7 @@
     "promise": "^7.1.1",
     "through2": "^2.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "gulp": "^3.9.0"
+  }
 }

@@ -12,6 +12,9 @@ var slate = require('./src/slate');
 var Promise = require('promise');
 var gutil = require('gulp-util');
 var rename = require("gulp-rename");
+var PluginError = gutil.PluginError;
+
+var PLUGIN_NAME = 'gulp-slate';
 
 /**
  * set the current file in given path to name
@@ -48,10 +51,11 @@ function fixFilename (name, override) {
  * build assets
  *
  * @param opts
+ * @param callback
  *
  * @returns Promise
  */
-function buildAssets (opts, context) {
+function buildAssets (opts, callback) {
     return new Promise(function (resolve) {
         es.concat(
             gulp
@@ -60,8 +64,7 @@ function buildAssets (opts, context) {
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
-                        gutil.log("push asset", file.path);
-                        context.push(file);
+                        callback(file);
                     });
                 })),
             gulp
@@ -71,8 +74,7 @@ function buildAssets (opts, context) {
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.js'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
-                        gutil.log("push asset", file.path);
-                        context.push(file);
+                        callback(file);
                     });
                 })),
             gulp
@@ -88,8 +90,7 @@ function buildAssets (opts, context) {
                 .pipe(rename({dirname: 'build', basename: 'libs', extname: '.js'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
-                        gutil.log("push asset", file.path);
-                        context.push(file);
+                        callback(file);
                     });
                 })),
             gulp
@@ -104,8 +105,7 @@ function buildAssets (opts, context) {
                 }))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
-                        gutil.log("push asset", file.path);
-                        context.push(file);
+                        callback(file);
                     });
                 })),
             gulp
@@ -113,21 +113,20 @@ function buildAssets (opts, context) {
                 .pipe(rename({dirname: 'images', basename: 'logo', extname: '.png'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
-                        gutil.log("push asset", file.path);
-                        context.push(file);
+                        callback(file);
                     });
                 }))
         ).on(
             'end',
             function () {
-                resolve('');
+                resolve(false);
             }
         );
     })
 }
 
 module.exports = function (opts) {
-    opts = _.extend(opts, {
+    opts = _.extend({
         targetWrite: true,
         filename: false,
         template: 'src/layout.html',
@@ -136,15 +135,14 @@ module.exports = function (opts) {
             return new Promise(function (resolve) {
                 var includeFile = changeFile(mainFile, "includes/_"+name+".md");
 
-                gutil.log("include markup", includeFile);
+                gutil.log(PLUGIN_NAME+": include markup", includeFile);
 
                 fs.readFile(
                     includeFile,
                     'utf-8',
                     function (err, source) {
                         if (err) {
-                            console.error('could not open include', "includes/_"+name+".md");
-                            resolve('');
+                            throw new PluginError(PLUGIN_NAME, 'could not open include includes/_'+name+'.md');
                         } else {
                             resolve(source);
                         }
@@ -152,20 +150,31 @@ module.exports = function (opts) {
                 );
             });
         }
-    });
+    }, opts);
 
     return through.obj(
         function (file, enc, cb) {
              // file coming in :D
             var context = this;
 
+            var assets = [];
             var files = [];
             if (opts.targetWrite) {
-                files.push(buildAssets(opts, context));
+                files.push(buildAssets(
+                    opts,
+                    function (file) {
+                        assets.push(file);
+                    }
+                ));
             }
 
-            files.push(new Promise(function (resolve) {
+            files.push(new Promise(function (resolve, reject) {
                 fs.readFile(opts.template, 'utf8', function (err, source) {
+                    if (err) {
+                        reject(new PluginError(PLUGIN_NAME, 'failed to load template: '+opts.template));
+                        return;
+                    }
+
                     slate(
                         file.contents.toString(),
                         source,
@@ -175,12 +184,11 @@ module.exports = function (opts) {
                         }
                     ).then(
                         function(result) {
-                            gutil.log("push main file");
+                            var main = file.clone();
+                            main.contents = new Buffer(result);
+                            main.path = fixFilename(file.path, opts.filename);
 
-                            file.contents = new Buffer(result);
-                            file.path = fixFilename(file.path, opts.filename);
-
-                            context.push(file);
+                            resolve(main);
                         }
                     );
                 });
@@ -188,10 +196,35 @@ module.exports = function (opts) {
 
             Promise
                 .all(files)
-                .then(function () {
-                    console.log('finished building everything');
-                    cb();
-                });
+                .then(
+                    function (files) {
+                        gutil.log(gutil.colors.green(PLUGIN_NAME+': finished building everything'));
+
+                        _.forEach(files, function (file) {
+                            if (!file.path) {
+                                return;
+                            }
+
+                            gutil.log(PLUGIN_NAME+": push markdown", gutil.colors.dim(file.path));
+                            context.push(file);
+                        });
+
+                        _.forEach(assets, function (file) {
+                            if (!file.path) {
+                                return;
+                            }
+
+                            gutil.log(PLUGIN_NAME+": push asset", gutil.colors.dim(file.path));
+                            context.push(file);
+                        });
+
+                        cb();
+                    },
+                    function (error) {
+                        gutil.log(gutil.colors.red(PLUGIN_NAME+': '+error.message));
+                        cb(error);
+                    }
+                );
         }
     );
 };
