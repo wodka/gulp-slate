@@ -46,6 +46,66 @@ python -m SimpleHTTPServer 8000
 
 now open http://localhost:8000 in a browser of your choice, result should look exactly like http://tripit.github.io/slate/
 
+## automate development
+
+you can use browserSync
+
+I will now asume that your repository looks like this:
+
+    .
+    ├── dist
+    ├── docs
+    │   ├── custom.scss
+    │   └── index.html.md
+    ├── gulpfile.js
+    └── package.json
+
+### installation
+
+```
+npm install browser-sync --save
+```
+
+### gulpfile.js
+```
+var gulp = require('gulp');
+var slate = require('gulp-slate');
+var browserSync = require('browser-sync').create();
+
+gulp.task('slate', function () {
+    return gulp.src('docs/index.html.md')
+        .pipe(slate({
+            scss: 'docs/custom.scss'
+        }))
+        .pipe(gulp.dest('dist/'))
+        .on('end', browserSync.reload)
+    ;
+});
+
+gulp.task('serve', ['slate'], function() {
+
+    browserSync.init({
+        port: 8080,
+        server: {
+            baseDir: "./dist"
+        }
+    });
+
+    gulp.watch('docs/**', ['slate']);
+});
+
+```
+
+### run it :)
+
+this will start browserSync, watch for changes inside of docs and refresh your browser!
+
+```
+gulp serve
+```
+
+## configuration
+
 ### constructor(options)
 #### options.assets
 add assets to current stream
