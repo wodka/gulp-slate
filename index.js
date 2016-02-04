@@ -60,8 +60,17 @@ function buildAssets (opts, callback) {
     return new Promise(function (resolve) {
         es.concat(
             gulp
-                .src(opts.scss, {base: '.'})
+                .src(
+                    [
+                        opts.scss,
+                        ROOT+'node_modules/highlight.js/styles/'+opts.style+'.css'
+                    ],
+                    {
+                        base: '.'
+                    }
+                )
                 .pipe(sass())
+                .pipe(concat("app.css"))
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
@@ -130,6 +139,7 @@ module.exports = function (opts) {
     opts = _.extend({
         assets: true,
         filename: false,
+        style: 'solarized-dark',
         template: ROOT+'src/layout.html',
         scss: ROOT+'src/app.scss',
         logo: ROOT+'node_modules/slate/source/images/logo.png',

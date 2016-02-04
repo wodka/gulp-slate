@@ -117,6 +117,11 @@ set the filename - warning: only use one input file! else only the last one will
 
 Type: `String`<br><br>Default `index.html.md` will become `index.html`
 
+#### options.style
+Highlighting style, use any name from https://github.com/isagalaev/highlight.js/tree/master/src/styles
+
+Type: `String`<br><br>Default `solarized-dark`
+
 #### options.template
 Template to render - in general you should never need to touch this
 
