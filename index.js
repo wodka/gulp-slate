@@ -5,6 +5,7 @@ var fs = require('fs');
 var gutil = require('gulp-util');
 var through = require('through2');
 var slate = require('./src/slate');
+var Promise = require('promise');
 
 module.exports = function (opts) {
     opts = _.extend(opts, {
@@ -13,23 +14,38 @@ module.exports = function (opts) {
         template: 'src/layout.html',
         analytics: {
             google: false
+        },
+        includeLoader: function (name, mainFile) {
+            return new Promise(function (resolve, reject) {
+                fs.readFile(
+                    changeFile(mainFile, "includes/_"+name+".md"),
+                    'utf-8',
+                    function (err, source) {
+                        if (err) {
+                            console.error('could not open include', "includes/_"+name+".md");
+                            resolve('');
+                        } else {
+                            resolve(source);
+                        }
+                    }
+                );
+            });
         }
     });
 
+    function changeFile (path, name) {
+        var parts = path.split('/');
+        parts.pop();
+        parts.push(name);
+        return parts.join('/');
+    }
+
     function fixFilename (name) {
-        var parts = name.split('/');
-
-        var original = parts.pop();
-
         if (opts.filename) {
-            parts.push(opts.filename);
-        } else {
-            original = original.replace(/\.md/, "");
-
-            parts.push(original);
+            return changeFile(name, opts.filename);
         }
 
-        return parts.join('/');
+        return changeFile(name, name.split('/').pop().replace(/\.md/, ""));
     }
 
     return through.obj(
@@ -37,20 +53,21 @@ module.exports = function (opts) {
              // file coming in :D
 
             fs.readFile(opts.template, 'utf8', function (err, source) {
-                if (err) {
-                    console.log(err);
-                }
+                slate(
+                    file.contents.toString(),
+                    source,
+                    function (name) {
+                        // call internal file loader
+                        return opts.includeLoader(name, file.path);
+                    }
+                ).then(
+                    function(result) {
+                        file.contents = new Buffer(result);
+                        file.path = fixFilename(file.path);
 
-                file.path = fixFilename(file.path);
-
-                slate(file.contents.toString(), source)
-                    .then(
-                        function(result) {
-                            file.contents = new Buffer(result);
-
-                            cb(null, file);//null, fileCreator(opts.filename, result, { src: true }));
-                        }
-                    );
+                        cb(null, file);//null, fileCreator(opts.filename, result, { src: true }));
+                    }
+                );
             });
         }
     );
