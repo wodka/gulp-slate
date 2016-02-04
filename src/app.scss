@@ -8,8 +8,8 @@
     text-shadow: none;
   }
 
-  .content table {
-    width: 50%;
+  .content table tr td:last-of-type {
+    width: 100%;
   }
 }
 
