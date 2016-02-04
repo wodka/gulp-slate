@@ -15,6 +15,7 @@ var rename = require("gulp-rename");
 var PluginError = gutil.PluginError;
 
 var PLUGIN_NAME = 'gulp-slate';
+var ROOT = __dirname + '/';
 
 /**
  * set the current file in given path to name
@@ -41,10 +42,10 @@ function changeFile (path, name) {
  */
 function fixFilename (name, override) {
     if (override) {
-        return changeFile(name, override);
+        return override;
     }
 
-    return changeFile(name, name.split('/').pop().replace(/\.md/, ""));
+    return name.split('/').pop().replace(/\.md/, "");
 }
 
 /**
@@ -59,7 +60,7 @@ function buildAssets (opts, callback) {
     return new Promise(function (resolve) {
         es.concat(
             gulp
-                .src('src/app.scss', {base: '.'})
+                .src(ROOT+'src/app.scss', {base: '.'})
                 .pipe(sass())
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
                 .pipe(gutil.buffer(function(err, files) {
@@ -68,7 +69,7 @@ function buildAssets (opts, callback) {
                     });
                 })),
             gulp
-                .src('node_modules/slate/source/javascripts/app/*.js', {base: '.'})
+                .src(ROOT+'node_modules/slate/source/javascripts/app/*.js', {base: '.'})
                 .pipe(concat("app.js"))
                 .pipe(uglify())
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.js'}))
@@ -80,9 +81,9 @@ function buildAssets (opts, callback) {
             gulp
                 .src(
                     [
-                        'node_modules/slate/source/javascripts/lib/_jquery.js',
-                        'node_modules/slate/source/javascripts/lib/_jquery_ui.js',
-                        'node_modules/slate/source/javascripts/lib/*.js'
+                        ROOT+'node_modules/slate/source/javascripts/lib/_jquery.js',
+                        ROOT+'node_modules/slate/source/javascripts/lib/_jquery_ui.js',
+                        ROOT+'node_modules/slate/source/javascripts/lib/*.js'
                     ], {base: '.'}
                 )
                 .pipe(concat("libs.js"))
@@ -96,8 +97,8 @@ function buildAssets (opts, callback) {
             gulp
                 .src(
                     [
-                        'node_modules/slate/source/fonts/*',
-                        'node_modules/slate/source/images/navbar.png'
+                        ROOT+'node_modules/slate/source/fonts/*',
+                        ROOT+'node_modules/slate/source/images/navbar.png'
                     ], {base: '.'}
                 )
                 .pipe(rename(function (path) {
@@ -127,10 +128,10 @@ function buildAssets (opts, callback) {
 
 module.exports = function (opts) {
     opts = _.extend({
-        targetWrite: true,
+        assets: true,
         filename: false,
-        template: 'src/layout.html',
-        logo: 'node_modules/slate/source/images/logo.png',
+        template: ROOT+'src/layout.html',
+        logo: ROOT+'node_modules/slate/source/images/logo.png',
         includeLoader: function (name, mainFile) {
             return new Promise(function (resolve) {
                 var includeFile = changeFile(mainFile, "includes/_"+name+".md");
@@ -142,7 +143,13 @@ module.exports = function (opts) {
                     'utf-8',
                     function (err, source) {
                         if (err) {
-                            throw new PluginError(PLUGIN_NAME, 'could not open include includes/_'+name+'.md');
+                            throw new PluginError(
+                                PLUGIN_NAME,
+                                {
+                                    name: 'FileOpenError',
+                                    message: 'could not open include includes/_'+name+'.md'
+                                }
+                            );
                         } else {
                             resolve(source);
                         }
@@ -159,7 +166,7 @@ module.exports = function (opts) {
 
             var assets = [];
             var files = [];
-            if (opts.targetWrite) {
+            if (opts.assets) {
                 files.push(buildAssets(
                     opts,
                     function (file) {
@@ -171,7 +178,13 @@ module.exports = function (opts) {
             files.push(new Promise(function (resolve, reject) {
                 fs.readFile(opts.template, 'utf8', function (err, source) {
                     if (err) {
-                        reject(new PluginError(PLUGIN_NAME, 'failed to load template: '+opts.template));
+                        reject(new PluginError(
+                            PLUGIN_NAME,
+                            {
+                                name: 'FileOpenError',
+                                message: 'failed to load template: '+opts.template
+                            }
+                        ));
                         return;
                     }
 
@@ -184,11 +197,21 @@ module.exports = function (opts) {
                         }
                     ).then(
                         function(result) {
-                            var main = file.clone();
-                            main.contents = new Buffer(result);
-                            main.path = fixFilename(file.path, opts.filename);
+                            var main = new gutil.File({
+                                contents: new Buffer(result),
+                                path: fixFilename(file.path, opts.filename)
+                            });
 
                             resolve(main);
+                        },
+                        function (err) {
+                            reject(new PluginError(
+                                PLUGIN_NAME,
+                                {
+                                    name: 'SlateError',
+                                    message: err
+                                }
+                            ));
                         }
                     );
                 });

@@ -103,14 +103,22 @@ module.exports = function (markup, template, includesLoader) {
         markdown.push(includesLoader(include));
     });
 
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
         Promise.all(markdown)
             .then(
                 function (res) {
-                    data['content'] = marked(res.join(''))
-                        .replace(/pre><code([^>]+)/g, 'pre$1><code');
+                    marked(
+                        res.join(''),
+                        function (err, content) {
+                            if (err) {
+                                reject(err);
+                            }
 
-                    resolve(Handlebars.compile(template)(data))
+                            data['content'] = content.replace(/pre><code([^>]+)/g, 'pre$1><code');
+
+                            resolve(Handlebars.compile(template)(data));
+                        }
+                    );
                 }
             );
     });
