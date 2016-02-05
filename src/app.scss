@@ -1,6 +1,13 @@
 
 @import "functions";
 
+@mixin calc($property, $expression) {
+  #{$property}: -moz-calc(#{$expression});
+  #{$property}: -webkit-calc(#{$expression});
+  #{$property}: -o-calc(#{$expression});
+  #{$property}: calc(#{$expression});
+}
+
 @media screen {
   @import "../node_modules/slate/source/stylesheets/screen.css.scss";
 
@@ -8,8 +15,28 @@
     text-shadow: none;
   }
 
-  .content table tr td:last-of-type {
-    width: 100%;
+  table {
+    float: left;
+    clear: left;
+    display: table;
+    margin-left: 28px;
+    margin-right: 28px;
+    @include calc(width, '50% - 56px');
+  }
+
+  blockquote > p {
+    @include calc(width, '100% - 28px');
+  }
+
+  p, ul {
+    float: left;
+    clear: left;
+    width: 50%;
+    margin-right: 0;
+  }
+
+  aside {
+    clear: left;
   }
 }
 
