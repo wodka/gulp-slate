@@ -86,17 +86,21 @@ module.exports = function (markup, template, includesLoader) {
         }
 
         if (token.type === 'paragraph') {
-
             if (tokens[idx+1] !== undefined && tokens[idx+1].type === 'list_start') {
-
                 listName = token.text.slice(0, -1);
                 data[listName] = [];
-
             } else {
-
                 token = token.text.split(': ');
-                data[token[0]] = token[1];
 
+                if (token[1] === 'true') {
+                    token[1] = true;
+                }
+
+                if (token[1] === 'false') {
+                    token[1] = false;
+                }
+
+                data[token[0]] = token[1];
             }
         }
     }

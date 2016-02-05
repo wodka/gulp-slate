@@ -33,11 +33,13 @@
                 {{/each}}
             </div>
 
-            <div class="search">
-                <input type="text" class="search" id="input-search" placeholder="Search">
-            </div>
+            {{#if search}}
+                <div class="search">
+                    <input type="text" class="search" id="input-search" placeholder="Search">
+                </div>
 
-            <ul class="search-results"></ul>
+                <ul class="search-results"></ul>
+            {{/if}}
 
             <div id="toc"></div>
 
