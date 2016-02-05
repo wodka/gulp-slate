@@ -38,6 +38,10 @@
   aside {
     clear: left;
   }
+
+  pre + pre {
+    padding-top: 0;
+  }
 }
 
 @media print {
