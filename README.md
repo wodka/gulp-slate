@@ -121,6 +121,11 @@ set the filename - warning: only use one input file! else only the last one will
 
 Type: `String`<br><br>Default `index.html.md` will become `index.html`
 
+#### options.log
+log level: DEBUG|INFO|WARN|ERROR
+
+Type: `String`<br><br>Default `WARN`
+
 #### options.style
 Highlighting style, use any name from https://github.com/isagalaev/highlight.js/tree/master/src/styles
 

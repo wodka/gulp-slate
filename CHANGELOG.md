@@ -1,6 +1,7 @@
 ## Version 1.0.3 (unreleased)
 
 - allow language aliases
+- reduce log output with log level
 
 ## Version 1.0.2
 

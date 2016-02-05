@@ -11,7 +11,6 @@
 
 var _ = require('lodash');
 var marked = require('marked');
-var fs = require('fs');
 var highlight = require('highlight.js');
 var Handlebars = require('handlebars');
 var Promise = require('promise');
@@ -32,9 +31,7 @@ marked.setOptions({
             lang = parts[1];
         }
 
-        var result = highlight.highlight(lang, code).value;
-
-        return result;
+        return highlight.highlight(lang, code).value;
     }
 });
 
@@ -58,6 +55,7 @@ Handlebars.registerHelper('json', function(context) {
  *
  * @param markup
  * @param template
+ * @param includesLoader
  */
 module.exports = function (markup, template, includesLoader) {
     includesLoader = includesLoader || function () { return ''; };

@@ -49,6 +49,32 @@ function fixFilename (name, override) {
 }
 
 /**
+ * @param level
+ * @internal message
+ */
+function log(level) {
+    var args;
+
+    if(arguments) {
+        args = Array.prototype.slice.call(arguments);
+        args.shift();
+    } else {
+        args.push('message missing');
+    }
+
+    args.unshift('['+gutil.colors.blue(PLUGIN_NAME)+']');
+
+    if (level >= log.level) {
+        gutil.log.apply(this, args);
+    }
+}
+
+log.DEBUG = 0;
+log.INFO = 10;
+log.WARN = 20;
+log.ERROR = 30;
+
+/**
  * build assets
  *
  * @param opts
@@ -74,6 +100,7 @@ function buildAssets (opts, callback) {
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
+                        log(log.DEBUG, "build asset "+file.path);
                         callback(file);
                     });
                 })),
@@ -84,6 +111,7 @@ function buildAssets (opts, callback) {
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.js'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
+                        log(log.DEBUG, "build asset "+file.path);
                         callback(file);
                     });
                 })),
@@ -100,6 +128,7 @@ function buildAssets (opts, callback) {
                 .pipe(rename({dirname: 'build', basename: 'libs', extname: '.js'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
+                        log(log.DEBUG, "build asset "+file.path);
                         callback(file);
                     });
                 })),
@@ -115,6 +144,7 @@ function buildAssets (opts, callback) {
                 }))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
+                        log(log.DEBUG, "build asset "+file.path);
                         callback(file);
                     });
                 })),
@@ -123,6 +153,7 @@ function buildAssets (opts, callback) {
                 .pipe(rename({dirname: 'images', basename: 'logo', extname: '.png'}))
                 .pipe(gutil.buffer(function(err, files) {
                     _.forEach(files, function (file) {
+                        log(log.DEBUG, "build asset "+file.path);
                         callback(file);
                     });
                 }))
@@ -137,6 +168,7 @@ function buildAssets (opts, callback) {
 
 module.exports = function (opts) {
     opts = _.extend({
+        log: 'WARN',
         assets: true,
         filename: false,
         style: 'solarized-dark',
@@ -147,7 +179,7 @@ module.exports = function (opts) {
             return new Promise(function (resolve) {
                 var includeFile = changeFile(mainFile, "includes/_"+name+".md");
 
-                gutil.log(PLUGIN_NAME+": include markup", includeFile);
+                log(log.INFO, "include markup", includeFile);
 
                 fs.readFile(
                     includeFile,
@@ -170,9 +202,15 @@ module.exports = function (opts) {
         }
     }, opts);
 
+    if (typeof log[opts.log] === "number") {
+        log.level = log[opts.log];
+    } else {
+        log.level = 20;
+    }
+
     return through.obj(
         function (file, enc, cb) {
-             // file coming in :D
+            // file coming in :D
             var context = this;
 
             var assets = [];
@@ -232,14 +270,14 @@ module.exports = function (opts) {
                 .all(files)
                 .then(
                     function (files) {
-                        gutil.log(gutil.colors.green(PLUGIN_NAME+': finished building everything'));
+                        log(log.DEBUG, "push files to pipe");
 
                         _.forEach(files, function (file) {
                             if (!file.path) {
                                 return;
                             }
 
-                            gutil.log(PLUGIN_NAME+": push markdown", gutil.colors.dim(file.path));
+                            log(log.DEBUG, "push markdown", gutil.colors.dim(file.path));
                             context.push(file);
                         });
 
@@ -248,14 +286,16 @@ module.exports = function (opts) {
                                 return;
                             }
 
-                            gutil.log(PLUGIN_NAME+": push asset", gutil.colors.dim(file.path));
+                            log(log.DEBUG, "push asset", gutil.colors.dim(file.path));
                             context.push(file);
                         });
+
+                        log(log.INFO, gutil.colors.green('finished building'));
 
                         cb();
                     },
                     function (error) {
-                        gutil.log(gutil.colors.red(PLUGIN_NAME+': '+error.message));
+                        log(log.ERROR, gutil.colors.red(error.message));
                         cb(error);
                     }
                 );
