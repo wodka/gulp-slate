@@ -2,6 +2,7 @@
 
 - allow language aliases
 - reduce log output with log level
+- #6 prevent errors in preprocessors
 
 ## Version 1.0.2
 
