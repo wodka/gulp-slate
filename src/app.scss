@@ -40,7 +40,8 @@
     clear: left;
   }
 
-  pre + pre {
+  pre:not(._) + pre:not(._),
+  pre._ + pre._{
     padding-top: 0;
   }
 
