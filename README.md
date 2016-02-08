@@ -2,6 +2,14 @@
 
 node.js with port of tripit/slate to be included in gulp :)
 
+## special features
+
+### code blocks in main content
+
+   ```_>javascript
+   will render javascript in main content
+   ```
+
 ## usage
 
 ### Instalation

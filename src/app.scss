@@ -1,5 +1,6 @@
 
 @import "functions";
+@import "../node_modules/slate/source/stylesheets/_variables.scss";
 
 @mixin calc($property, $expression) {
   #{$property}: -moz-calc(#{$expression});
@@ -41,6 +42,28 @@
 
   pre + pre {
     padding-top: 0;
+  }
+
+  .highlight._ {
+    float: left;
+    clear: left;
+    background-color: white;
+    color: #333;
+    text-shadow: 0 1px 0 #fff;
+
+    @import "../node_modules/highlight.js/styles/solarized-light";
+  }
+}
+
+@media screen and (max-width: $phone-width) {
+  .content {
+    table {
+      @include calc(width, '100% - 56px');
+    }
+
+    p, ul {
+      width: 100%;
+    }
   }
 }
 
