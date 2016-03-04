@@ -62,7 +62,7 @@ module.exports = function (markup, template, includesLoader) {
 
     // // marked doens't recognize "shell"?
     markup = markup.replace(/```shell/gm, '```bash');
-    markup = markup.replace(/\n\r/gm, '\n');
+    markup = markup.replace(/\r\n/gm, '\n');
     markup = markup.split(/(?:^|\n)---\n/g);
 
     if (markup.length === 1) {
