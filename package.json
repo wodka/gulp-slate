@@ -1,6 +1,6 @@
 {
   "name": "gulp-slate",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Slate API Documentation built to build with gulp",
   "main": "index.js",
   "scripts": {
