@@ -1,3 +1,7 @@
+## version 1.0.4
+
+- work with windows line endings
+
 ## Version 1.0.3 **2016-02-09**
 
 - allow language aliases
