@@ -20,16 +20,17 @@ var ROOT = __dirname + '/';
 /**
  * set the current file in given path to name
  *
- * @param path
+ * @param srcPath
  * @param name
  *
  * @returns {string}
  */
-function changeFile (path, name) {
-    var parts = path.split('/');
+function changeFile (srcPath, name) {
+    var path = require('path');
+    var parts = srcPath.split(path.sep);
     parts.pop();
     parts.push(name);
-    return parts.join('/');
+    return parts.join(path.sep);
 }
 
 /**
