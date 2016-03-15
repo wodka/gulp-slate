@@ -1,3 +1,7 @@
+## version 1.0.6
+
+- fix on windows (#9)
+
 ## version 1.0.5
 
 - work with windows line endings
