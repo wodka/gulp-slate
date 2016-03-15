@@ -1,6 +1,6 @@
 ## version 1.0.6
 
-- fix on windows (#9)
+- fix on windows (https://github.com/wodka/gulp-slate/pull/9)
 
 ## version 1.0.5
 
