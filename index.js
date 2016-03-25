@@ -109,6 +109,7 @@ function buildAssets (opts, callback) {
             }
             rawScss.push('@import "'+opts.variables+'";');
         }
+        rawScss.push('@import "'+getModulePath('slate')+'/source/stylesheets/_variables.scss";');
         rawScss.push('@function font-url($url){ @return url($url) }');
         rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
         rawScss.push('@media screen { .highlight._{ @import "'+getModulePath('highlight.js')+'/../styles/solarized-light"; } }');
