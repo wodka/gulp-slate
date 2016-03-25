@@ -1,3 +1,8 @@
+## version 1.0.7
+
+- fix bad width (https://github.com/wodka/gulp-slate/issues/13)
+- make it possible to define variables
+
 ## version 1.0.6
 
 - fix on windows (https://github.com/wodka/gulp-slate/pull/9)

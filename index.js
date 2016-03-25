@@ -12,6 +12,8 @@ var slate = require('./src/slate');
 var Promise = require('promise');
 var gutil = require('gulp-util');
 var rename = require("gulp-rename");
+var add = require("gulp-add");
+var path = require("path");
 var PluginError = gutil.PluginError;
 
 var PLUGIN_NAME = 'gulp-slate';
@@ -31,6 +33,21 @@ function changeFile (srcPath, name) {
     parts.pop();
     parts.push(name);
     return parts.join(path.sep);
+}
+
+/**
+ * get the path of the module
+ *
+ * @param name
+ *
+ * @returns {string}
+ */
+function getModulePath(name) {
+    if (name == 'slate') {
+        return ROOT+'node_modules/slate';
+    }
+
+    return path.dirname(require.resolve(name));
 }
 
 /**
@@ -85,17 +102,29 @@ log.ERROR = 30;
  */
 function buildAssets (opts, callback) {
     return new Promise(function (resolve) {
+        var rawScss = [];
+        rawScss.push('@import "'+getModulePath('slate')+'/source/stylesheets/_variables.scss";');
+        if (opts.variables) {
+            rawScss.push('@imports "'+opts.variables+'";');
+        }
+        rawScss.push('@function font-url($url){ @return url($url) }');
+        rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
+        rawScss.push('@media screen { .highlight._{ @import "'+getModulePath('highlight.js')+'/../styles/solarized-light"; } }');
+        rawScss.push('@media print { @import "'+getModulePath('slate')+'/source/stylesheets/print.css.scss"; }');
+
         es.concat(
             gulp
                 .src(
                     [
                         opts.scss,
-                        ROOT+'node_modules/highlight.js/styles/'+opts.style+'.css'
+                        getModulePath('highlight.js')+'/styles/'+opts.style+'.css'
                     ],
                     {
                         base: '.'
                     }
                 )
+                .pipe(add('raw.scss', rawScss.join("\n"), true))
+                .pipe(concat("app.scss"))
                 .pipe(sass())
                 .pipe(concat("app.css"))
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
@@ -106,7 +135,7 @@ function buildAssets (opts, callback) {
                     });
                 })),
             gulp
-                .src(ROOT+'node_modules/slate/source/javascripts/app/*.js', {base: '.'})
+                .src(getModulePath('slate')+'/source/javascripts/app/*.js', {base: '.'})
                 .pipe(concat("app.js"))
                 .pipe(uglify())
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.js'}))
@@ -119,9 +148,9 @@ function buildAssets (opts, callback) {
             gulp
                 .src(
                     [
-                        ROOT+'node_modules/slate/source/javascripts/lib/_jquery.js',
-                        ROOT+'node_modules/slate/source/javascripts/lib/_jquery_ui.js',
-                        ROOT+'node_modules/slate/source/javascripts/lib/*.js'
+                        getModulePath('slate')+'/source/javascripts/lib/_jquery.js',
+                        getModulePath('slate')+'/source/javascripts/lib/_jquery_ui.js',
+                        getModulePath('slate')+'/source/javascripts/lib/*.js'
                     ], {base: '.'}
                 )
                 .pipe(concat("libs.js"))
@@ -136,8 +165,8 @@ function buildAssets (opts, callback) {
             gulp
                 .src(
                     [
-                        ROOT+'node_modules/slate/source/fonts/*',
-                        ROOT+'node_modules/slate/source/images/navbar.png'
+                        getModulePath('slate')+'/source/fonts/*',
+                        getModulePath('slate')+'/source/images/navbar.png'
                     ], {base: '.'}
                 )
                 .pipe(rename(function (path) {
@@ -175,7 +204,8 @@ module.exports = function (opts) {
         style: 'solarized-dark',
         template: ROOT+'src/layout.html',
         scss: ROOT+'src/app.scss',
-        logo: ROOT+'node_modules/slate/source/images/logo.png',
+        variables: null,
+        logo: getModulePath('slate')+'/source/images/logo.png',
         includeLoader: function (name, mainFile) {
             return new Promise(function (resolve) {
                 var includeFile = changeFile(mainFile, "includes/_"+name+".md");

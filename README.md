@@ -149,6 +149,11 @@ If you need to override certain css parameters, do not forget to include the ori
 
 Type: `String`<br><br>Default `src/app.scss`
 
+#### options.variables
+load your own variables, default variables from slate are always loaded first
+
+Type: `String`<br><br>Default `null`
+
 #### options.logo
 to have a custom logo added to the page
 
