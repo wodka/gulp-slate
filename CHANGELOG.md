@@ -2,6 +2,7 @@
 
 - fix bad width (https://github.com/wodka/gulp-slate/issues/13)
 - make it possible to define variables
+- fix relative variable file paths (https://github.com/wodka/gulp-slate/issues/15)
 
 ## version 1.0.6
 
