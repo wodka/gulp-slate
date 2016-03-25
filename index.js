@@ -111,21 +111,22 @@ function buildAssets (opts, callback) {
         }
         rawScss.push('@import "'+getModulePath('slate')+'/source/stylesheets/_variables.scss";');
         rawScss.push('@function font-url($url){ @return url($url) }');
-        rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
-        rawScss.push('@media screen { .highlight._{ @import "'+getModulePath('highlight.js')+'/../styles/solarized-light"; } }');
-        rawScss.push('@media print { @import "'+getModulePath('slate')+'/source/stylesheets/print.css.scss"; }');
+
+        if (opts.scss) {
+            if(!path.isAbsolute(opts.scss)) {
+                opts.scss = path.join(path.dirname(module.parent.filename), opts.scss);
+            }
+            rawScss.push('@import "'+opts.scss+'";');
+        }
+        else {
+            rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
+            rawScss.push('@media print { @import "'+getModulePath('slate')+'/source/stylesheets/print.css.scss"; }');
+        }
+        rawScss.push('@media screen { @import "'+getModulePath('highlight.js')+'/../styles/'+opts.style+'.css'+'"; }');
 
         es.concat(
             gulp
-                .src(
-                    [
-                        opts.scss,
-                        getModulePath('highlight.js')+'/styles/'+opts.style+'.css'
-                    ],
-                    {
-                        base: '.'
-                    }
-                )
+                .src([])
                 .pipe(add('raw.scss', rawScss.join("\n"), true))
                 .pipe(concat("app.scss"))
                 .pipe(sass())
@@ -206,7 +207,7 @@ module.exports = function (opts) {
         filename: false,
         style: 'solarized-dark',
         template: ROOT+'src/layout.html',
-        scss: ROOT+'src/app.scss',
+        scss: null,
         variables: null,
         logo: getModulePath('slate')+'/source/images/logo.png',
         includeLoader: function (name, mainFile) {
