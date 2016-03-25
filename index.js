@@ -103,9 +103,11 @@ log.ERROR = 30;
 function buildAssets (opts, callback) {
     return new Promise(function (resolve) {
         var rawScss = [];
-        rawScss.push('@import "'+getModulePath('slate')+'/source/stylesheets/_variables.scss";');
         if (opts.variables) {
-            rawScss.push('@imports "'+opts.variables+'";');
+            if(!path.isAbsolute(opts.variables)) {
+                opts.variables = path.join(path.dirname(module.parent.filename), opts.variables);
+            }
+            rawScss.push('@import "'+opts.variables+'";');
         }
         rawScss.push('@function font-url($url){ @return url($url) }');
         rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
