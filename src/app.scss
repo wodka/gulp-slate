@@ -29,7 +29,7 @@
     @include calc(width, '100% - 28px');
   }
 
-  p, ul {
+  .content p, .content ul {
     float: left;
     clear: left;
     width: 50%;
@@ -71,4 +71,3 @@
 @media print {
   @import "../node_modules/slate/source/stylesheets/print.css.scss";
 }
-
