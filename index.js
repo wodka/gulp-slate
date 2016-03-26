@@ -122,11 +122,12 @@ function buildAssets (opts, callback) {
             rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
             rawScss.push('@media print { @import "'+getModulePath('slate')+'/source/stylesheets/print.css.scss"; }');
         }
-        rawScss.push('@media screen { @import "'+getModulePath('highlight.js')+'/../styles/'+opts.style+'.css'+'"; }');
+
+        var styles_path = path.join(getModulePath('highlight.js'), '/../styles/', opts.style+'.css');
 
         es.concat(
             gulp
-                .src([])
+                .src([styles_path])
                 .pipe(add('raw.scss', rawScss.join("\n"), true))
                 .pipe(concat("app.scss"))
                 .pipe(sass())
