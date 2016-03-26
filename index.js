@@ -119,6 +119,7 @@ function buildAssets (opts, callback) {
             rawScss.push('@import "'+opts.scss+'";');
         }
         else {
+            rawScss.push('@media screen { @import "'+getModulePath('gulp-slate')+'/src/app.scss"; }');
             rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
             rawScss.push('@media print { @import "'+getModulePath('slate')+'/source/stylesheets/print.css.scss"; }');
         }
