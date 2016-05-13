@@ -1,3 +1,7 @@
+## version 1.0.9
+
+- fix theme loading
+
 ## version 1.0.8
 
 - cleanup after build

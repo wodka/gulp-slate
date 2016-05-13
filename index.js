@@ -124,7 +124,8 @@ function preprocessScss (opts) {
                     getModulePath('slate')+'/source/stylesheets/_normalize.scss',
                     getModulePath('slate')+'/source/stylesheets/print.css.scss',
                     getModulePath('slate')+'/source/stylesheets/screen.css.scss',
-                    getModulePath('highlight.js')+'/../styles/solarized-light.css'
+                    getModulePath('highlight.js')+'/../styles/solarized-light.css',
+                    getModulePath('highlight.js')+'/../styles/'+opts.style+'.css'
                 ])
                 .pipe(gulp.dest('slate.tmp/'))
             )
@@ -143,11 +144,11 @@ function processScss () {
         es.concat(
             gulp.src(['slate.tmp/screen.css.scss'])
                 .pipe(sass())
-                .pipe(concat("screen.scss"))
+                .pipe(concat("screen.css"))
                 .pipe(gulp.dest('slate.tmp/')),
             gulp.src(['slate.tmp/print.css.scss'])
                 .pipe(sass())
-                .pipe(concat("print.scss"))
+                .pipe(concat("print.css"))
                 .pipe(gulp.dest('slate.tmp/'))
             )
             .on('end', resolve);
@@ -164,23 +165,16 @@ function buildCss (opts) {
     return new Promise(function (resolve) {
         var rawScss = [];
 
-        rawScss.push('@media screen { @import "slate.tmp/screen.scss"; }');
+        rawScss.push('@media screen { @import "slate.tmp/screen"; }');
         rawScss.push('@media screen { .highlight._{ @import "slate.tmp/solarized-light"; } }');
-        rawScss.push('@media print { @import "slate.tmp/print.scss"; }');
+        rawScss.push('@media screen { .highlight{ @import "slate.tmp/'+opts.style+'"; } }');
+        rawScss.push('@media print { @import "slate.tmp/print"; }');
 
         var files = [];
 
         es.concat(
             gulp
-                .src(
-                    [
-                        opts.scss,
-                        getModulePath('highlight.js')+'/styles/'+opts.style+'.css'
-                    ],
-                    {
-                        base: '.'
-                    }
-                )
+                .src([opts.scss], {base: '.'})
                 .pipe(add('raw.scss', rawScss.join("\n"), true))
                 .pipe(concat("app.scss"))
                 .pipe(sass())
