@@ -93,26 +93,81 @@ log.WARN = 20;
 log.ERROR = 30;
 
 /**
- * build assets
- *
- * @param opts
- * @param callback
+ * prepare scss files, slate is not perfect...
  *
  * @returns Promise
  */
-function buildAssets (opts, callback) {
+function preprocessScss (opts) {
+    log(log.DEBUG, 'preprocessSlate');
+
     return new Promise(function (resolve) {
-        var rawScss = [];
+
+        var variablesScss = [getModulePath('slate')+'/source/stylesheets/_variables.scss'];
         if (opts.variables) {
             if(!path.isAbsolute(opts.variables)) {
                 opts.variables = path.join(path.dirname(module.parent.filename), opts.variables);
             }
-            rawScss.push('@import "'+opts.variables+'";');
+            variablesScss.push(opts.variables);
         }
-        rawScss.push('@function font-url($url){ @return url($url) }');
-        rawScss.push('@media screen { @import "'+getModulePath('slate')+'/source/stylesheets/screen.css.scss"; }');
-        rawScss.push('@media screen { .highlight._{ @import "'+getModulePath('highlight.js')+'/../styles/solarized-light"; } }');
-        rawScss.push('@media print { @import "'+getModulePath('slate')+'/source/stylesheets/print.css.scss"; }');
+
+        es.concat(
+            gulp
+                .src(variablesScss)
+                .pipe(add('fix.scss', '@function font-url($url){ @return url($url) }'))
+                .pipe(concat("_variables.scss"))
+                .pipe(rename({dirname: '', basename: '_variables', extname: '.scss'}))
+                .pipe(gulp.dest('slate.tmp/')),
+            gulp
+                .src([
+                    getModulePath('slate')+'/source/stylesheets/_icon-font.scss',
+                    getModulePath('slate')+'/source/stylesheets/_normalize.scss',
+                    getModulePath('slate')+'/source/stylesheets/print.css.scss',
+                    getModulePath('slate')+'/source/stylesheets/screen.css.scss',
+                    getModulePath('highlight.js')+'/../styles/solarized-light.css'
+                ])
+                .pipe(gulp.dest('slate.tmp/'))
+        )
+            .on('end', resolve);
+    });
+}
+
+/**
+ * build css files
+ *
+ * @returns Promise
+ */
+function processScss () {
+    log(log.INFO, 'processSlate');
+    return new Promise(function (resolve) {
+        es.concat(
+            gulp.src(['slate.tmp/screen.css.scss'])
+                .pipe(sass())
+                .pipe(concat("screen.css"))
+                .pipe(gulp.dest('slate.tmp/')),
+            gulp.src(['slate.tmp/print.css.scss'])
+                .pipe(sass())
+                .pipe(concat("print.css"))
+                .pipe(gulp.dest('slate.tmp/'))
+        )
+            .on('end', resolve);
+    });
+}
+
+/**
+ * concat stuff to one css file
+ *
+ * @returns Promise
+ */
+function buildCss (opts) {
+    log(log.INFO, 'postprocessScss');
+    return new Promise(function (resolve) {
+        var rawScss = [];
+
+        rawScss.push('@media screen { @import "slate.tmp/screen"; }');
+        rawScss.push('@media screen { .highlight._{ @import "slate.tmp/solarized-light"; } }');
+        rawScss.push('@media print { @import "slate.tmp/print"; }');
+
+        var files = [];
 
         es.concat(
             gulp
@@ -130,23 +185,56 @@ function buildAssets (opts, callback) {
                 .pipe(sass())
                 .pipe(concat("app.css"))
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.css'}))
-                .pipe(gutil.buffer(function(err, files) {
-                    _.forEach(files, function (file) {
+                .pipe(gutil.buffer(function(err, result) {
+                    _.forEach(result, function (file) {
                         log(log.DEBUG, "build asset "+file.path);
-                        callback(file);
+                        files.push(file);
                     });
-                })),
+                }))
+
+            )
+            .on('end', function () {
+                resolve(files);
+            });
+    });
+}
+
+/**
+ * build app js file and uglify it
+ *
+ * @returns Promise
+ */
+function buildJsApp () {
+    return new Promise(function(resolve) {
+        var files = [];
+        es.concat(
             gulp
                 .src(getModulePath('slate')+'/source/javascripts/app/*.js', {base: '.'})
                 .pipe(concat("app.js"))
                 .pipe(uglify())
                 .pipe(rename({dirname: 'build', basename: 'app', extname: '.js'}))
-                .pipe(gutil.buffer(function(err, files) {
-                    _.forEach(files, function (file) {
+                .pipe(gutil.buffer(function(err, result) {
+                    _.forEach(result, function (file) {
                         log(log.DEBUG, "build asset "+file.path);
-                        callback(file);
+                        files.push(file);
                     });
-                })),
+                }))
+        )
+            .on('end', function () {
+                resolve(files);
+            });
+    });
+}
+
+/**
+ * build lib js file and uglify it
+ *
+ * @returns Promise
+ */
+function buildJsLibs () {
+    return new Promise(function(resolve) {
+        var files = [];
+        es.concat(
             gulp
                 .src(
                     [
@@ -158,12 +246,28 @@ function buildAssets (opts, callback) {
                 .pipe(concat("libs.js"))
                 .pipe(uglify())
                 .pipe(rename({dirname: 'build', basename: 'libs', extname: '.js'}))
-                .pipe(gutil.buffer(function(err, files) {
-                    _.forEach(files, function (file) {
+                .pipe(gutil.buffer(function(err, result) {
+                    _.forEach(result, function (file) {
                         log(log.DEBUG, "build asset "+file.path);
-                        callback(file);
+                        files.push(file);
                     });
-                })),
+                }))
+        )
+            .on('end', function () {
+                resolve(files);
+            });
+    });
+}
+
+/**
+ * prepare static files
+ *
+ * @returns Promise
+ */
+function buildStatic (opts) {
+    return new Promise(function(resolve) {
+        var files = [];
+        es.concat(
             gulp
                 .src(
                     [
@@ -174,28 +278,61 @@ function buildAssets (opts, callback) {
                 .pipe(rename(function (path) {
                     path.dirname = 'build';
                 }))
-                .pipe(gutil.buffer(function(err, files) {
-                    _.forEach(files, function (file) {
+                .pipe(gutil.buffer(function(err, result) {
+                    _.forEach(result, function (file) {
                         log(log.DEBUG, "build asset "+file.path);
-                        callback(file);
+                        files.push(file);
                     });
                 })),
             gulp
                 .src(opts.logo, {base: '.'})
                 .pipe(rename({dirname: 'images', basename: 'logo', extname: '.png'}))
-                .pipe(gutil.buffer(function(err, files) {
-                    _.forEach(files, function (file) {
+                .pipe(gutil.buffer(function(err, result) {
+                    _.forEach(result, function (file) {
                         log(log.DEBUG, "build asset "+file.path);
-                        callback(file);
+                        files.push(file);
                     });
                 }))
-        ).on(
-            'end',
-            function () {
-                resolve(false);
-            }
-        );
-    })
+            )
+            .on('end', function () {
+                resolve(files);
+            });
+    });
+}
+
+/**
+ * build assets
+ *
+ * @param opts
+ *
+ * @returns Promise
+ */
+function buildAssets (opts) {
+    log(log.DEBUG, 'buildAssets');
+
+    return new Promise(function (resolve) {
+        preprocessScss(opts)
+            .then(function () {
+                return processScss();
+            })
+            .then(function () {
+                Promise.all([
+                    buildCss(opts),
+                    buildJsApp(),
+                    buildJsLibs(),
+                    buildStatic(opts)
+                ]).then(function (result) {
+                    var files = [];
+                    _.forEach(result, function (group) {
+                        _.forEach(group, function (file) {
+                            files.push(file);
+                        })
+                    });
+
+                    resolve(files);
+                });
+            })
+    });
 }
 
 module.exports = function (opts) {
@@ -246,18 +383,13 @@ module.exports = function (opts) {
             // file coming in :D
             var context = this;
 
-            var assets = [];
-            var files = [];
+            var promises = [];
+
             if (opts.assets) {
-                files.push(buildAssets(
-                    opts,
-                    function (file) {
-                        assets.push(file);
-                    }
-                ));
+                promises.push(buildAssets(opts));
             }
 
-            files.push(new Promise(function (resolve, reject) {
+            promises.push(new Promise(function (resolve, reject) {
                 fs.readFile(opts.template, 'utf8', function (err, source) {
                     if (err) {
                         reject(new PluginError(
@@ -284,7 +416,7 @@ module.exports = function (opts) {
                                 path: fixFilename(file.path, opts.filename)
                             });
 
-                            resolve(main);
+                            resolve([main]);
                         },
                         function (err) {
                             reject(new PluginError(
@@ -300,27 +432,20 @@ module.exports = function (opts) {
             }));
 
             Promise
-                .all(files)
+                .all(promises)
                 .then(
-                    function (files) {
+                    function (groups) {
                         log(log.DEBUG, "push files to pipe");
 
-                        _.forEach(files, function (file) {
-                            if (!file.path) {
-                                return;
-                            }
+                        _.forEach(groups, function(files) {
+                            _.forEach(files, function (file) {
+                                if (!file.path) {
+                                    return;
+                                }
 
-                            log(log.DEBUG, "push markdown", gutil.colors.dim(file.path));
-                            context.push(file);
-                        });
-
-                        _.forEach(assets, function (file) {
-                            if (!file.path) {
-                                return;
-                            }
-
-                            log(log.DEBUG, "push asset", gutil.colors.dim(file.path));
-                            context.push(file);
+                                log(log.DEBUG, "push markdown", gutil.colors.dim(file.path));
+                                context.push(file);
+                            })
                         });
 
                         log(log.INFO, gutil.colors.green('finished building'));

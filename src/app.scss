@@ -5,6 +5,10 @@
   #{$property}: calc(#{$expression});
 }
 
+$nav-width: 230px !default;
+$tablet-width: 930px !default;
+$phone-width: $tablet-width - $nav-width !default;
+
 @media screen {
   .content .search-highlight {
     text-shadow: none;
