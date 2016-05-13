@@ -1,3 +1,7 @@
+## version 1.0.8
+
+- cleanup after build
+
 ## version 1.0.7
 
 - fix bad width (https://github.com/wodka/gulp-slate/issues/13)

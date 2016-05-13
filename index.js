@@ -13,6 +13,7 @@ var Promise = require('promise');
 var gutil = require('gulp-util');
 var rename = require("gulp-rename");
 var add = require("gulp-add");
+var del = require("del");
 var path = require("path");
 var PluginError = gutil.PluginError;
 
@@ -98,7 +99,7 @@ log.ERROR = 30;
  * @returns Promise
  */
 function preprocessScss (opts) {
-    log(log.DEBUG, 'preprocessSlate');
+    log(log.DEBUG, 'call preprocessSlate');
 
     return new Promise(function (resolve) {
 
@@ -126,7 +127,7 @@ function preprocessScss (opts) {
                     getModulePath('highlight.js')+'/../styles/solarized-light.css'
                 ])
                 .pipe(gulp.dest('slate.tmp/'))
-        )
+            )
             .on('end', resolve);
     });
 }
@@ -137,18 +138,18 @@ function preprocessScss (opts) {
  * @returns Promise
  */
 function processScss () {
-    log(log.INFO, 'processSlate');
+    log(log.INFO, 'call processScss');
     return new Promise(function (resolve) {
         es.concat(
             gulp.src(['slate.tmp/screen.css.scss'])
                 .pipe(sass())
-                .pipe(concat("screen.css"))
+                .pipe(concat("screen.scss"))
                 .pipe(gulp.dest('slate.tmp/')),
             gulp.src(['slate.tmp/print.css.scss'])
                 .pipe(sass())
-                .pipe(concat("print.css"))
+                .pipe(concat("print.scss"))
                 .pipe(gulp.dest('slate.tmp/'))
-        )
+            )
             .on('end', resolve);
     });
 }
@@ -159,13 +160,13 @@ function processScss () {
  * @returns Promise
  */
 function buildCss (opts) {
-    log(log.INFO, 'postprocessScss');
+    log(log.INFO, 'call buildCss');
     return new Promise(function (resolve) {
         var rawScss = [];
 
-        rawScss.push('@media screen { @import "slate.tmp/screen"; }');
+        rawScss.push('@media screen { @import "slate.tmp/screen.scss"; }');
         rawScss.push('@media screen { .highlight._{ @import "slate.tmp/solarized-light"; } }');
-        rawScss.push('@media print { @import "slate.tmp/print"; }');
+        rawScss.push('@media print { @import "slate.tmp/print.scss"; }');
 
         var files = [];
 
@@ -205,6 +206,7 @@ function buildCss (opts) {
  * @returns Promise
  */
 function buildJsApp () {
+    log(log.DEBUG, 'call buildJsApp');
     return new Promise(function(resolve) {
         var files = [];
         es.concat(
@@ -219,7 +221,7 @@ function buildJsApp () {
                         files.push(file);
                     });
                 }))
-        )
+            )
             .on('end', function () {
                 resolve(files);
             });
@@ -232,6 +234,7 @@ function buildJsApp () {
  * @returns Promise
  */
 function buildJsLibs () {
+    log(log.DEBUG, 'call buildJsLibs');
     return new Promise(function(resolve) {
         var files = [];
         es.concat(
@@ -252,7 +255,7 @@ function buildJsLibs () {
                         files.push(file);
                     });
                 }))
-        )
+            )
             .on('end', function () {
                 resolve(files);
             });
@@ -265,6 +268,7 @@ function buildJsLibs () {
  * @returns Promise
  */
 function buildStatic (opts) {
+    log(log.DEBUG, 'call buildStatic');
     return new Promise(function(resolve) {
         var files = [];
         es.concat(
@@ -308,7 +312,7 @@ function buildStatic (opts) {
  * @returns Promise
  */
 function buildAssets (opts) {
-    log(log.DEBUG, 'buildAssets');
+    log(log.DEBUG, 'call buildAssets');
 
     return new Promise(function (resolve) {
         preprocessScss(opts)
@@ -322,6 +326,7 @@ function buildAssets (opts) {
                     buildJsLibs(),
                     buildStatic(opts)
                 ]).then(function (result) {
+                    log(log.DEBUG, 'finishing up assets');
                     var files = [];
                     _.forEach(result, function (group) {
                         _.forEach(group, function (file) {
@@ -330,6 +335,11 @@ function buildAssets (opts) {
                     });
 
                     resolve(files);
+                }).finally(function() {
+                    // cleanup tmp folder
+                    del([
+                        'slate.tmp'
+                    ])
                 });
             })
     });

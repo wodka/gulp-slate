@@ -1,6 +1,6 @@
 {
   "name": "gulp-slate",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Slate API Documentation built to build with gulp",
   "main": "index.js",
   "scripts": {
@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/wodka/gulp-slate#readme",
   "dependencies": {
+    "del": "^2.2.0",
     "event-stream": "^3.3.2",
     "gulp-add": "0.0.2",
     "gulp-concat": "^2.6.0",
