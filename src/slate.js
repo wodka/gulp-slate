@@ -36,7 +36,7 @@ marked.setOptions({
 });
 
 //Easier than changing Slate's js
-marked.defaults.langPrefix = 'highlight ';
+marked.defaults.langPrefix = 'highlight tab-';
 
 Handlebars.registerHelper('str', function(item){
     return '"' + item + '"';
