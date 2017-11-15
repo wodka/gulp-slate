@@ -13,14 +13,14 @@ node.js with port of tripit/slate to be included in gulp :)
 ## usage
 
 ### Instalation
-```
+```console
 npm install gulp-slate --save
 ```
 
 ### Gulp Setup
 
 now you can setup a gulp task to handle the build
-```
+```javascript
 // inside of gulpfile.js
 var gulp = require('gulp');
 var slate = require('gulp-slate');
@@ -41,14 +41,14 @@ gulp.task('slate', function () {
 
 this is really simple since the task is already setup:
 
-```
+```console
 gulp slate
 ```
 
 now go on and host the dist/ folder somewhere
 
 ### simple webserver
-```
+```console
 python -m SimpleHTTPServer 8000
 ```
 
@@ -74,12 +74,12 @@ I will now asume that your repository looks like this:
 
 ### installation
 
-```
+```console
 npm install browser-sync --save
 ```
 
 ### gulpfile.js
-```
+```javascript
 var gulp = require('gulp');
 var slate = require('gulp-slate');
 var browserSync = require('browser-sync').create();
@@ -112,7 +112,7 @@ gulp.task('serve', ['slate'], function() {
 
 this will start browserSync, watch for changes inside of docs and refresh your browser!
 
-```
+```console
 gulp serve
 ```
 
